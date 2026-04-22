@@ -1,184 +1,225 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>KeyRush</title>
+<meta charset="UTF-8">
+<title>Glow Up Studio PRO</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #0f172a;
-      color: #e2e8f0;
-      text-align: center;
-    }
+<style>
+body {
+  margin:0;
+  background:#0f172a;
+  font-family:sans-serif;
+  color:#e2e8f0;
+  text-align:center;
+}
 
-    h1 {
-      margin: 20px 0 5px;
-      font-weight: 600;
-      letter-spacing: 1px;
-    }
+h1 {margin:15px;}
 
-    #info {
-      color: #94a3b8;
-      margin-bottom: 10px;
-    }
+#game {
+  position:relative;
+  width:260px;
+  height:320px;
+  margin:20px auto;
+  background:#1e293b;
+  border-radius:20px;
+  overflow:hidden;
+}
 
-    #gameArea {
-      position: relative;
-      width: 400px;
-      height: 500px;
-      margin: auto;
-      background: #1e293b;
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-    }
+#face {
+  position:absolute;
+  width:200px;
+  height:260px;
+  background:#f1c27d;
+  border-radius:120px;
+  top:30px;
+  left:30px;
+}
 
-    .block {
-      position: absolute;
-      width: 60px;
-      height: 60px;
-      background: #38bdf8;
-      color: #0f172a;
-      font-size: 24px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 10px;
-      transition: transform 0.1s;
-    }
+.eye {
+  position:absolute;
+  width:20px;height:20px;
+  background:#000;
+  border-radius:50%;
+  top:80px;
+}
 
-    .hit {
-      background: #22c55e !important;
-    }
+.eye.left{left:50px;}
+.eye.right{right:50px;}
 
-    .miss {
-      background: #ef4444 !important;
-    }
+#lips, .blush, .eyeS {
+  position:absolute;
+  background:transparent;
+}
 
-    button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background: #38bdf8;
-      border: none;
-      border-radius: 8px;
-      color: #0f172a;
-      font-weight: bold;
-      cursor: pointer;
-    }
+#lips {
+  width:70px;height:25px;
+  bottom:60px;
+  left:50%;transform:translateX(-50%);
+  border-radius:20px;
+}
 
-    button:hover {
-      background: #0ea5e9;
-    }
+.blush {
+  width:35px;height:20px;
+  top:140px;border-radius:50%;
+}
+#blushL{left:20px;}
+#blushR{right:20px;}
 
-    #combo {
-      margin-top: 5px;
-      color: #38bdf8;
-      font-weight: bold;
-    }
-  </style>
+.eyeS {
+  width:35px;height:12px;
+  top:70px;
+}
+#eyeL{left:45px;}
+#eyeR{right:45px;}
+
+#toolbar {
+  margin-top:10px;
+}
+
+button, input {
+  margin:5px;
+  padding:8px;
+  border:none;
+  border-radius:8px;
+}
+
+button {
+  background:#38bdf8;
+  color:#0f172a;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:hover {background:#0ea5e9;}
+
+#score {color:#94a3b8;}
+#result {margin-top:5px;}
+
+</style>
 </head>
 
 <body>
 
-  <h1>KeyRush</h1>
-  <div id="info">Score: 0</div>
-  <div id="combo">Combo: 0</div>
+<h1>Glow Up Studio PRO</h1>
+<div id="score">Score: 0</div>
+<div id="result"></div>
 
-  <div id="gameArea"></div>
+<div id="game">
+  <div id="face">
+    <div class="eye left"></div>
+    <div class="eye right"></div>
 
-  <button onclick="startGame()">Start Game</button>
+    <div id="eyeL" class="eyeS"></div>
+    <div id="eyeR" class="eyeS"></div>
 
-  <script>
-    const keys = ["A", "S", "D", "F"];
-    const gameArea = document.getElementById("gameArea");
-    const info = document.getElementById("info");
-    const comboText = document.getElementById("combo");
+    <div id="blushL" class="blush"></div>
+    <div id="blushR" class="blush"></div>
 
-    let score = 0;
-    let combo = 0;
-    let speed = 4;
-    let blocks = [];
-    let spawnLoop;
+    <div id="lips"></div>
+  </div>
+</div>
 
-    function createBlock() {
-      const block = document.createElement("div");
-      block.classList.add("block");
+<div id="toolbar">
+  <input type="color" id="picker" value="#ff4d6d">
 
-      const key = keys[Math.floor(Math.random() * keys.length)];
-      block.innerText = key;
-      block.dataset.key = key;
+  <button onclick="mode='lip'">Lip</button>
+  <button onclick="mode='blush'">Blush</button>
+  <button onclick="mode='eye'">Eye</button>
 
-      block.style.left = Math.random() * 340 + "px";
-      block.style.top = "0px";
+  <br>
 
-      gameArea.appendChild(block);
+  <button onclick="check()">Check</button>
+  <button onclick="toggleBefore()">Before/After</button>
+  <button onclick="saveImage()">Save</button>
+</div>
 
-      let fall = setInterval(() => {
-        let top = parseInt(block.style.top);
-        block.style.top = top + speed + "px";
+<script>
+let mode = "lip";
+let score = 0;
+let beforeState = true;
 
-        if (top > 500) {
-          block.classList.add("miss");
-          combo = 0;
-          updateUI();
+let current = {lip:"", blush:"", eye:""};
 
-          setTimeout(() => block.remove(), 200);
-          clearInterval(fall);
-        }
-      }, 30);
+const target = {
+  lip:"#ff4d6d",
+  blush:"#ff8fab",
+  eye:"#b388ff"
+};
 
-      blocks.push({ el: block, fall });
-    }
+const face = document.getElementById("face");
 
-    document.addEventListener("keydown", (e) => {
-      const key = e.key.toUpperCase();
+face.addEventListener("click", (e)=>{
+  let color = document.getElementById("picker").value;
 
-      for (let i = 0; i < blocks.length; i++) {
-        if (blocks[i].el.dataset.key === key) {
+  if(mode==="lip"){
+    document.getElementById("lips").style.background=color;
+    current.lip=color;
+  }
 
-          blocks[i].el.classList.add("hit");
-          clearInterval(blocks[i].fall);
+  if(mode==="blush"){
+    document.getElementById("blushL").style.background=color;
+    document.getElementById("blushR").style.background=color;
+    current.blush=color;
+  }
 
-          setTimeout(() => blocks[i].el.remove(), 100);
+  if(mode==="eye"){
+    document.getElementById("eyeL").style.background=color;
+    document.getElementById("eyeR").style.background=color;
+    current.eye=color;
+  }
 
-          blocks.splice(i, 1);
+  score+=3;
+  update();
+});
 
-          score += 10;
-          combo++;
-          speed += 0.1;
+function update(){
+  document.getElementById("score").innerText="Score: "+score;
+}
 
-          updateUI();
-          break;
-        }
-      }
-    });
+function check(){
+  let match=0;
 
-    function updateUI() {
-      info.innerText = "Score: " + score;
-      comboText.innerText = "Combo: " + combo;
-    }
+  if(current.lip===target.lip) match++;
+  if(current.blush===target.blush) match++;
+  if(current.eye===target.eye) match++;
 
-    function startGame() {
-      score = 0;
-      combo = 0;
-      speed = 4;
-      blocks = [];
+  let text="";
 
-      gameArea.innerHTML = "";
-      updateUI();
+  if(match===3){
+    text="✨ PERFECT!";
+    score+=50;
+  } else if(match===2){
+    text="👍 Close!";
+    score+=20;
+  } else {
+    text="❌ Nope!";
+  }
 
-      clearInterval(spawnLoop);
-      spawnLoop = setInterval(createBlock, 900);
+  document.getElementById("result").innerText=text;
+  update();
+}
 
-      setTimeout(() => {
-        clearInterval(spawnLoop);
-        alert("Game Over!\nScore: " + score);
-      }, 30000);
-    }
-  </script>
+function toggleBefore(){
+  beforeState=!beforeState;
+
+  let elements=["lips","blushL","blushR","eyeL","eyeR"];
+
+  elements.forEach(id=>{
+    document.getElementById(id).style.display = beforeState ? "none":"block";
+  });
+}
+
+function saveImage(){
+  html2canvas(document.getElementById("game")).then(canvas=>{
+    let link=document.createElement("a");
+    link.download="makeup.png";
+    link.href=canvas.toDataURL();
+    link.click();
+  });
+}
+</script>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
 </body>
 </html>
