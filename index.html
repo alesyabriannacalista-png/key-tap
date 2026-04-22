@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>KeyRush</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 20px 0 5px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    #info {
+      color: #94a3b8;
+      margin-bottom: 10px;
+    }
+
+    #gameArea {
+      position: relative;
+      width: 400px;
+      height: 500px;
+      margin: auto;
+      background: #1e293b;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .block {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background: #38bdf8;
+      color: #0f172a;
+      font-size: 24px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      transition: transform 0.1s;
+    }
+
+    .hit {
+      background: #22c55e !important;
+    }
+
+    .miss {
+      background: #ef4444 !important;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: #38bdf8;
+      border: none;
+      border-radius: 8px;
+      color: #0f172a;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0ea5e9;
+    }
+
+    #combo {
+      margin-top: 5px;
+      color: #38bdf8;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>KeyRush</h1>
+  <div id="info">Score: 0</div>
+  <div id="combo">Combo: 0</div>
+
+  <div id="gameArea"></div>
+
+  <button onclick="startGame()">Start Game</button>
+
+  <script>
+    const keys = ["A", "S", "D", "F"];
+    const gameArea = document.getElementById("gameArea");
+    const info = document.getElementById("info");
+    const comboText = document.getElementById("combo");
+
+    let score = 0;
+    let combo = 0;
+    let speed = 4;
+    let blocks = [];
+    let spawnLoop;
+
+    function createBlock() {
+      const block = document.createElement("div");
+      block.classList.add("block");
+
+      const key = keys[Math.floor(Math.random() * keys.length)];
+      block.innerText = key;
+      block.dataset.key = key;
+
+      block.style.left = Math.random() * 340 + "px";
+      block.style.top = "0px";
+
+      gameArea.appendChild(block);
+
+      let fall = setInterval(() => {
+        let top = parseInt(block.style.top);
+        block.style.top = top + speed + "px";
+
+        if (top > 500) {
+          block.classList.add("miss");
+          combo = 0;
+          updateUI();
+
+          setTimeout(() => block.remove(), 200);
+          clearInterval(fall);
+        }
+      }, 30);
+
+      blocks.push({ el: block, fall });
+    }
+
+    document.addEventListener("keydown", (e) => {
+      const key = e.key.toUpperCase();
+
+      for (let i = 0; i < blocks.length; i++) {
+        if (blocks[i].el.dataset.key === key) {
+
+          blocks[i].el.classList.add("hit");
+          clearInterval(blocks[i].fall);
+
+          setTimeout(() => blocks[i].el.remove(), 100);
+
+          blocks.splice(i, 1);
+
+          score += 10;
+          combo++;
+          speed += 0.1;
+
+          updateUI();
+          break;
+        }
+      }
+    });
+
+    function updateUI() {
+      info.innerText = "Score: " + score;
+      comboText.innerText = "Combo: " + combo;
+    }
+
+    function startGame() {
+      score = 0;
+      combo = 0;
+      speed = 4;
+      blocks = [];
+
+      gameArea.innerHTML = "";
+      updateUI();
+
+      clearInterval(spawnLoop);
+      spawnLoop = setInterval(createBlock, 900);
+
+      setTimeout(() => {
+        clearInterval(spawnLoop);
+        alert("Game Over!\nScore: " + score);
+      }, 30000);
+    }
+  </script>
+
+</body>
+</html>
